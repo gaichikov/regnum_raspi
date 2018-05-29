@@ -7,6 +7,7 @@ import time
 import subprocess
 import random
 import requests
+import socket
 from datetime import datetime, timedelta
 from daemon import runner
 
@@ -54,6 +55,7 @@ def main():
     logging.info('*'*50)
     logging.info('Raspi daemon was started')
     sites = get_sites_list()
+    add_routes(sites)
 
     while True:
         if (datetime.now() - raspi.asterisk_status_last).total_seconds() > raspi.asterisk_check_int:
@@ -77,8 +79,21 @@ def get_configuation():
 
 
 def get_sites_list():
+    '''Gets sites list '''
     fileH = open('sites.txt', 'r')
     return fileH.read().split('\n')
+
+
+def add_routes(sites):
+    ''' Bring up wlan interface and add routes '''
+    for site in sites:
+        ip_addr = socket.gethostbyname(site)
+        output = subprocess.getoutput('ip r add %s dev wlan0 via 192.168.43.1' % ip_addr)
+        if 'File exists' in output:
+            logging.warning('Route to %s already exists' % ip_addr)
+        else:
+            logging.info('Added route to %s via wlan' % ip_addr)
+
 
 
 def check_asterisk_mobile():
