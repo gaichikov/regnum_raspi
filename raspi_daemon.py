@@ -8,6 +8,7 @@ import subprocess
 import random
 import requests
 import socket
+import json
 from datetime import datetime, timedelta
 from daemon import runner
 
@@ -33,10 +34,10 @@ class Channel(object):
         self.pairing_status = False
         self.status = True
         
-        self.ext_status = True
-        self.ext_active_int = 20 # Seconds
-        self.ext_block_int = 30  # Seconds
-        self.ext_ts_last = datetime.now() + timedelta(seconds=random.randint(20, 50))  # Start count from different timestamps
+        self.channel_status = True
+        self.channel_active_int = 20 # Seconds
+        self.channel_block_int = 30  # Seconds
+        self.channel_ts_last = datetime.now() + timedelta(seconds=random.randint(20, 50))  # Start count from different timestamps
 
         self.download_int = 50  # period between downloads
         self.last_downloads = datetime.now()
@@ -48,6 +49,14 @@ for channel_id in range(1,5):
     channel = Channel(channel_id)
     print(channel.__dict__)
     channels.append(channel)
+
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect(("10.9.0.1", 5555))
+
+
+# def send_status_message(id):
+
 
 
 def main():
@@ -62,13 +71,12 @@ def main():
             check_asterisk_mobile()
 
         for channel in channels:
-            if (datetime.now() - channel.ext_ts_last).total_seconds() > channel.ext_active_int and channel.ext_status:
+            if (datetime.now() - channel.channel_ts_last).total_seconds() > channel.channel_active_int and channel.channel_status:
                 remove_extension(channel)
-            elif (datetime.now() - channel.ext_ts_last).total_seconds() > channel.ext_block_int and not channel.ext_status:
+            elif (datetime.now() - channel.channel_ts_last).total_seconds() > channel.channel_block_int and not channel.channel_status:
                 add_extension(channel)
-            if (datetime.now() - channel.last_downloads).total_seconds() > channel.download_int and not channel.ext_status:
-                start_downloading_activity(channel, sites)
-
+            # if (datetime.now() - channel.last_downloads).total_seconds() > channel.download_int and not channel.channel_status:
+            #     start_downloading_activity(channel, sites)
 
         time.sleep(1)
 
@@ -76,6 +84,7 @@ def main():
 def get_configuation():
     ''' Gets current controller and cellphones configuration '''
     pass
+
 
 
 def get_sites_list():
@@ -108,28 +117,34 @@ def check_asterisk_mobile():
     output_spl = output.split('\n')[1:]
     # logging.info(output_spl)
 
-    # for idx, line in enumerate(output_spl):
-    #     phone_id, mac_addr, group, adapter, connected, state, sms = line.split()
-    #     if connected == 'No':
-    #         logging.error('Device %s was unpaired!!' % phone_id)
-    #     elif connected == 'Yes':
-    #         logging.info('Device %s was connected again and ready to receive calls' % phone_id)
+    for idx, line in enumerate(output_spl):
+        phone_id, mac_addr, group, adapter, connected, state, sms = line.split()
+        if connected == 'No' and channels[idx].pairing_status:
+            channels[idx].pairing_status = False
+            s.send(json.dumps({'channel_id': idx+1, 'pairing_status': 'unpaired'}).encode())
+            logging.error('Device %s was unpaired!!' % phone_id)
+        elif connected == 'Yes' and not channels[idx].pairing_status:
+            channels[idx].pairing_status = True
+            s.send(json.dumps({'channel_id': idx+1, 'pairing_status': 'paired'}).encode())
+            logging.info('Device %s was connected again and ready to receive calls' % phone_id)
 
     raspi.asterisk_status_last = datetime.now()
 
 
 def remove_extension(channel):
     os.system('asterisk -rx  "dialplan remove extension _X.@outgoing %s"' % channel.id )
-    channel.ext_status = False
+    channel.channel_status = False
     logging.info('Channel %s was blocked' % channel.id )
-    channel.ext_ts_last = datetime.now()
+    s.send(json.dumps({'channel_id': channel.id, 'channel_status': 'blocked'}).encode())
+    channel.channel_ts_last = datetime.now()
 
 
 def add_extension(channel):
     os.system('asterisk -rx "dialplan add extension _X.,%s,Dial(Mobile/samsung%s/${EXTEN},45) into outgoing"' % (channel.id, channel.id))
-    channel.ext_status = True
+    channel.channel_status = True
     logging.info('Channel %s was unblocked' % channel.id )
-    channel.ext_ts_last = datetime.now()
+    s.send(json.dumps({'channel_id': channel.id, 'channel_status': 'online'}).encode())
+    channel.channel_ts_last = datetime.now()
 
 
 def start_downloading_activity(channel, sites):
@@ -144,5 +159,6 @@ def start_downloading_activity(channel, sites):
 
 
 if __name__ == '__main__':
+
     main()
 
