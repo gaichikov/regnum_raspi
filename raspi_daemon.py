@@ -41,17 +41,17 @@ class Channel(object):
         # self.channel_block_int = 600  # Seconds
         
         self.total_call_time = 0  # Total duration to call before blocking
-        self.workinghours = [7, 19] # GMT
+        self.workinghours = [5, 19] # GMT
         
         self.last_busy_period = 0
         self.last_free_period = 0
 
-        self.idle_period = random.randint(50, 600) # Interval to wait between calls
+        self.idle_period = random.randint(30, 600) # Interval to wait between calls
 
         # self.last_check_ts = datetime.now() # last periodical check ts
         
         self.download_int = random.randint(10,15)  # period between downloads
-        self.last_downloads = datetime.now()
+        # self.last_downloads = datetime.now()
 
 
 raspi = Raspi()
@@ -76,7 +76,7 @@ def main():
     logging.info('*'*50)
     logging.info('Raspi daemon was started')
     sites = get_sites_list()
-    add_routes(sites)
+    # add_routes(sites)
 
     while True:
         # Set workinghours status
@@ -92,6 +92,8 @@ def main():
             # Block route if not workinghours
             if not channel.workinghours_status and channel.route_status == 'unblocked':
                 block_route(channel)
+            elif not channel.workinghours_status and channel.route_status == 'blocked':
+                pass
             else:
                 if channel.channel_status == 'busy' and channel.route_status == 'unblocked':    # Block route during the conversation, not to make next call immediately
                     block_route(channel)
@@ -103,7 +105,7 @@ def main():
         for channel in channels:
             print(channel.__dict__)
             try:
-                s.send(json.dumps({'channel_id': channel.id, 'pairing_status': channel.pairing_status, 'channel_status': channel.channel_status}).encode())
+                s.send(json.dumps(channel.__dict__).encode())
             except Exception as e:
                 logging.error('Could not send status to server, error: '+str(e))
         
@@ -185,7 +187,7 @@ def check_routes():
 
 def block_route(channel):
     os.system('asterisk -rx  "dialplan remove extension _X.@outgoing %s"' % channel.id )
-    channel.idle_period = random.randint(50,600)  # we need to change this period every time
+    channel.idle_period = random.randint(30,600)  # we need to change this period every time
     logging.info('Channel %s was blocked' % channel.channel_name )
     # channel.channel_ts_last = datetime.now()
 
