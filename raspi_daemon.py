@@ -79,8 +79,6 @@ def main():
     # add_routes(sites)
 
     while True:
-        # Set workinghours status
-        check_workinghours()
         # Checking actual channel status - paired/not paired, no service
         check_channels()
         # Check current routes , blocked/unblocked
@@ -89,6 +87,9 @@ def main():
         raspi.last_check_ts = datetime.now()
 
         for channel in channels:
+            # Check workinghours status
+            check_workinghours(channel)
+
             # Block route if not workinghours
             if not channel.workinghours_status and channel.route_status == 'unblocked':
                 logging.info('Non working hours - will block ' + channel.channel_name)
@@ -135,7 +136,7 @@ def add_routes(sites):
 
 
 
-def check_workinghours():
+def check_workinghours(channel):
     ''' Check workinghours '''
     if (channel.workinghours[0] <= int(datetime.now().strftime('%H')) < channel.workinghours[1]):
         channel.workinghours_status = True
