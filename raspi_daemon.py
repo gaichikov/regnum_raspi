@@ -58,7 +58,7 @@ raspi = Raspi()
 channels = []
 
 channels_amount = len(subprocess.getoutput('asterisk -x "mobile show devices"').split('\n')[1:])
-print('Total configured channels ' + str(channels_amount))
+logging.info('Total configured channels ' + str(channels_amount))
 
 for channel_id in range(1,channels_amount+1):
     channel = Channel(channel_id)
@@ -91,13 +91,16 @@ def main():
         for channel in channels:
             # Block route if not workinghours
             if not channel.workinghours_status and channel.route_status == 'unblocked':
+                logging.info('Non working hours - will block ' + channel.channel_name)
                 block_route(channel)
             elif not channel.workinghours_status and channel.route_status == 'blocked':
                 pass
             else:
                 if channel.channel_status == 'busy' and channel.route_status == 'unblocked':    # Block route during the conversation, not to make next call immediately
+                    logging.info('Channel is busy - blocking route ' + channel.channel_name)
                     block_route(channel)
                 if channel.channel_status == 'free' and channel.route_status == 'blocked' and channel.last_free_period > channel.idle_period:  # Unblock after randomly assigned idle period
+                    logging.info('Channel is free more than idle period - unblocking the route ' + channel.channel_name)
                     unblock_route(channel)
 
 
