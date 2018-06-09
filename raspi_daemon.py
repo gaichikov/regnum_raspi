@@ -37,6 +37,7 @@ class Channel(object):
         self.channel_status = None
         self.route_status = None
         self.workinghours_status = None
+        self.wifi_status = None
 
         # self.channel_block_int = 600  # Seconds
         
@@ -168,12 +169,12 @@ def check_channels():
 
         if state == 'Free':
             channels[idx].channel_status = 'free'
-            channels[idx].last_free_period += (datetime.now() - raspi.last_check_ts).total_seconds()
+            channels[idx].last_free_period += round((datetime.now() - raspi.last_check_ts).total_seconds(), 2)
             channels[idx].last_busy_period = 0
         elif state == 'Busy':
             channels[idx].channel_status = 'busy'
             channels[idx].last_free_period = 0 
-            channels[idx].last_busy_period += (datetime.now() - raspi.last_check_ts).total_seconds()
+            channels[idx].last_busy_period += round((datetime.now() - raspi.last_check_ts).total_seconds(), 2)
         elif state == 'None':
             channels[idx].channel_status = 'offline'
 
@@ -205,6 +206,10 @@ def unblock_route(channel):
 
 def check_wlan_status():
     pass
+    # wlan_output = subprocess.getoutput('iwconfig')
+    # for channel in channels:
+    #     if channel.wifi_ssid in wlan_output:
+    
 
 
 def start_downloading_activity(channel, sites):
