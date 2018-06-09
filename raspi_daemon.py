@@ -193,13 +193,15 @@ def check_routes():
 
 def block_route(channel):
     os.system('asterisk -rx  "dialplan remove extension _X.@outgoing %s"' % channel.id )
+    os.system('asterisk -rx  "dialplan add extension _X.,%s,NoOp() into outgoing"' % channel.id )
     channel.idle_period = random.randint(30,600)  # we need to change this period every time
     logging.info('Channel %s was blocked' % channel.channel_name )
     # channel.channel_ts_last = datetime.now()
 
 
 def unblock_route(channel):
-    os.system('asterisk -rx "dialplan add extension _X.,%s,Dial(Mobile/channel%s/${EXTEN},45) into outgoing"' % (channel.id, channel.id))
+    os.system('asterisk -rx "dialplan remove extension _X.@outgoing %s"' % channel.id )
+    os.system('asterisk -rx "dialplan add extension _X.,%s,Dial(Mobile/channel%s/\${EXTEN},45) into outgoing"' % (channel.id, channel.id))
     logging.info('Channel %s was unblocked' % channel.channel_name )
     # channel.channel_ts_last = datetime.now()
 
