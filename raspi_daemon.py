@@ -105,8 +105,8 @@ def main():
                 if channel.channel_status == 'free' and channel.route_status == 'blocked' and channel.last_free_period > channel.idle_period:  # Unblock after randomly assigned idle period
                     logging.info('Channel is free more than idle period - unblocking the route ' + channel.channel_name)
                     unblock_route(channel)
-                if channel.last_free_period:
-                    channel.unblocked_in =  channel.idle_period - channel.last_free_period
+                if channel.last_free_period and channel.route_status == 'blocked':
+                    channel.unblocking_in =  channel.idle_period - channel.last_free_period
 
         messages = []
         for channel in channels:
