@@ -48,6 +48,7 @@ class Channel(object):
         self.last_free_period = 0
 
         self.idle_period = random.randint(30, 600) # Interval to wait between calls
+        self.min_busy_period = 20 # Minimum call duration to consider channel busy
 
         # self.last_check_ts = datetime.now() # last periodical check ts
         
@@ -98,13 +99,14 @@ def main():
             elif not channel.workinghours_status and channel.route_status == 'blocked':
                 pass
             else:
-                if channel.channel_status == 'busy' and channel.route_status == 'unblocked':    # Block route during the conversation, not to make next call immediately
+                if channel.channel_status == 'busy' and channel.route_status == 'unblocked' and channel.last_busy_period > channel.min_busy_period:    # Block route during the conversation, not to make next call immediately
                     logging.info('Channel is busy - blocking route ' + channel.channel_name)
                     block_route(channel)
                 if channel.channel_status == 'free' and channel.route_status == 'blocked' and channel.last_free_period > channel.idle_period:  # Unblock after randomly assigned idle period
                     logging.info('Channel is free more than idle period - unblocking the route ' + channel.channel_name)
                     unblock_route(channel)
-
+                if channel.last_free_period:
+                    channel.unblocked_in =  channel.idle_period - channel.last_free_period
 
         messages = []
         for channel in channels:
