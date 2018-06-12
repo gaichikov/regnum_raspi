@@ -107,6 +107,9 @@ def main():
                     unblock_route(channel)
                 if channel.last_free_period and channel.route_status == 'blocked' and channel.idle_period > channel.last_free_period:
                     channel.unblocking_in =  channel.idle_period - channel.last_free_period
+                if channel.route_status == 'unblocked' and hasattr(channel, 'unblocking_in'):
+                    del channel.unblocking_in
+
 
         messages = []
         for channel in channels:
