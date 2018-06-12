@@ -50,7 +50,7 @@ class Channel(object):
 
         self.last_free_period = 0
 
-        self.idle_period = random.randint(30, 300) # Interval to wait between calls
+        self.idle_period = random.randint(30, 180) # Interval to wait between calls
         self.min_busy_period = 20 # Minimum call duration to consider channel busy
 
         # self.last_check_ts = datetime.now() # last periodical check ts
@@ -208,7 +208,7 @@ def block_route(channel):
         channel.last_busy_period_total = 0
         channel.idle_period = random.randint(1140,1260)  # random between 19 and 21 minutes
     else:
-        channel.idle_period = random.randint(30,300)  # we need to change this period every time
+        channel.idle_period = random.randint(30,180)  # we need to change this period every time
     logging.info('Channel %s was blocked' % channel.channel_name )
     # channel.channel_ts_last = datetime.now()
 
