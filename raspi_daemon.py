@@ -47,7 +47,7 @@ class Channel(object):
         self.last_busy_period = 0
         self.last_free_period = 0
 
-        self.idle_period = random.randint(30, 600) # Interval to wait between calls
+        self.idle_period = random.randint(30, 300) # Interval to wait between calls
         self.min_busy_period = 20 # Minimum call duration to consider channel busy
 
         # self.last_check_ts = datetime.now() # last periodical check ts
@@ -199,7 +199,7 @@ def check_routes():
 def block_route(channel):
     os.system('asterisk -rx  "dialplan remove extension _X.@outgoing %s"' % channel.id )
     os.system('asterisk -rx  "dialplan add extension _X.,%s,NoOp() into outgoing"' % channel.id )
-    channel.idle_period = random.randint(30,600)  # we need to change this period every time
+    channel.idle_period = random.randint(30,300)  # we need to change this period every time
     logging.info('Channel %s was blocked' % channel.channel_name )
     # channel.channel_ts_last = datetime.now()
 
