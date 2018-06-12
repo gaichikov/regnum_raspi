@@ -45,6 +45,9 @@ class Channel(object):
         self.workinghours = [5, 19] # GMT
         
         self.last_busy_period = 0
+        self.last_busy_period_total = 0   # Total time of busy, when exceeds max busy time - have a rest between the next calls 20 minutes and reset this parameter
+        self.last_busy_period_total_max = 3600 # Max busy time, next rest more after this period
+
         self.last_free_period = 0
 
         self.idle_period = random.randint(30, 300) # Interval to wait between calls
@@ -179,7 +182,9 @@ def check_channels():
         elif state == 'Busy':
             channels[idx].channel_status = 'busy'
             channels[idx].last_free_period = 0 
-            channels[idx].last_busy_period += round((datetime.now() - raspi.last_check_ts).total_seconds(), 2)
+            call_time_delta = round((datetime.now() - raspi.last_check_ts).total_seconds(), 2)
+            channels[idx].last_busy_period += call_time_delta
+            channels[idx].last_busy_period_total += call_time_delta
         elif state == 'None':
             channels[idx].channel_status = 'offline'
 
@@ -199,7 +204,11 @@ def check_routes():
 def block_route(channel):
     os.system('asterisk -rx  "dialplan remove extension _X.@outgoing %s"' % channel.id )
     os.system('asterisk -rx  "dialplan add extension _X.,%s,NoOp() into outgoing"' % channel.id )
-    channel.idle_period = random.randint(30,300)  # we need to change this period every time
+    if channel.last_busy_period_total > channel.last_busy_period_total_max:
+        channel.last_busy_period_total = 0
+        channel.idle_period = random.randint(1140,1260)  # random between 19 and 21 minutes
+    else:
+        channel.idle_period = random.randint(30,300)  # we need to change this period every time
     logging.info('Channel %s was blocked' % channel.channel_name )
     # channel.channel_ts_last = datetime.now()
 
