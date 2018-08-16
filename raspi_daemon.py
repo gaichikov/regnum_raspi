@@ -115,13 +115,21 @@ def main():
 
 
         messages = []
+        # for channel in channels:
+        #     messages.append(channel.__dict__)
+        #     print(channel.__dict__)
+        # try:
+        #     s.send(json.dumps(messages).encode())
+        # except Exception as e:
+        #     logging.error('Could not send status to server, error: '+str(e))
+
         for channel in channels:
-            messages.append(channel.__dict__)
-            print(channel.__dict__)
-        try:
-            s.send(json.dumps(messages).encode())
-        except Exception as e:
-            logging.error('Could not send status to server, error: '+str(e))
+	        try:
+	            s.send(json.dumps(channel.__dict__).encode())
+	        except Exception as e:
+	            logging.error('Could not send status to server, error: '+str(e))
+	        time.sleep(0.1)
+
         
         time.sleep(raspi.check_int)
 
