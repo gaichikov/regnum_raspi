@@ -72,7 +72,7 @@ for channel_id in range(1,channels_amount+1):
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect(("10.9.0.1", 5555))
+s.connect(("10.9.0.1", 5556))
 
 # def send_status_message(id):
 
