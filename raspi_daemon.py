@@ -174,9 +174,14 @@ def check_channels():
     # logging.info(output_spl)
 
     for idx, line in enumerate(output_spl):
-        try:
-            phone_id, mac_addr, group, adapter, connected, state, sms = line.split()
-        except:
+        lineSpl = line.split()
+        if len(lineSpl) == 7:
+            connected = lineSpl[4]
+            state = lineSpl[5]
+        elif len(lineSpl) == 8:
+            connected = lineSpl[4]
+            state = ' '.join(lineSpl[5:7])
+        else:
             continue
         if connected == 'No':
             channels[idx].pairing_status = 'not paired'
@@ -193,8 +198,10 @@ def check_channels():
             call_time_delta = round((datetime.now() - raspi.last_check_ts).total_seconds(), 2)
             channels[idx].last_busy_period += call_time_delta
             channels[idx].last_busy_period_total += call_time_delta
-        elif state in ('None', 'No'):
+        elif state == 'None':
             channels[idx].channel_status = 'offline'
+        elif state == 'No Service':
+            channels[idx].channel_status = 'no sim card'
 
 
 
