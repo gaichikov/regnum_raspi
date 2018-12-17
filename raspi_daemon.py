@@ -72,7 +72,7 @@ for channel_id in range(1,channels_amount+1):
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect(("10.9.0.1", 5556))
+s.connect(("10.9.0.1", 5557))
 
 # def send_status_message(id):
 
@@ -193,7 +193,7 @@ def check_channels():
             call_time_delta = round((datetime.now() - raspi.last_check_ts).total_seconds(), 2)
             channels[idx].last_busy_period += call_time_delta
             channels[idx].last_busy_period_total += call_time_delta
-        elif state == 'None':
+        elif state in ('None', 'No'):
             channels[idx].channel_status = 'offline'
 
 
