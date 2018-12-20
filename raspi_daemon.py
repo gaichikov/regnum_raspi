@@ -42,7 +42,7 @@ class Channel(object):
         # self.channel_block_int = 600  # Seconds
         
         self.total_call_time = 0  # Total duration to call before blocking
-        self.workinghours = [5, 19] # GMT
+        self.workinghours = [6, 19] # GMT
         
         self.last_busy_period = 0
         self.last_busy_period_total = 0   # Total time of busy, when exceeds max busy time - have a rest between the next calls 20 minutes and reset this parameter
@@ -221,7 +221,7 @@ def block_route(channel):
     os.system('asterisk -rx  "dialplan add extension _X.,%s,NoOp() into outgoing"' % channel.id )
     if channel.last_busy_period_total > channel.last_busy_period_total_max:
         channel.last_busy_period_total = 0
-        channel.idle_period = random.randint(1140,1260)  # random between 19 and 21 minutes
+        channel.idle_period = random.randint(5280,5520)  # random between 19 and 21 minutes
     else:
         channel.idle_period = random.randint(30,180)  # we need to change this period every time
     logging.info('Channel %s was blocked' % channel.channel_name )
